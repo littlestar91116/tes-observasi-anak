@@ -1,0 +1,275 @@
+{
+  "entities": {
+    "Student": {
+      "title": "Student",
+      "description": "Child profile with special educational needs registered for observation",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "fullName": { "type": "string", "maxLength": 150 },
+        "preferredName": { "type": "string", "maxLength": 50 },
+        "birthPlace": { "type": "string", "maxLength": 100 },
+        "birthDate": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$" },
+        "calculatedAge": { "type": "string", "maxLength": 50 },
+        "gender": { "type": "string", "enum": ["Laki-laki", "Perempuan"] },
+        "address": { "type": "string", "maxLength": 500 },
+        "previousEducation": { "type": "string", "maxLength": 500 },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "fullName", "preferredName", "birthPlace", "birthDate", "gender", "address"]
+    },
+    "Guardian": {
+      "title": "Guardian",
+      "description": "Parent or guardian details and emergency contacts",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "fullName": { "type": "string", "maxLength": 150 },
+        "relationship": { "type": "string", "enum": ["Ayah", "Ibu", "Wali", "Kakek/Nenek", "Lainnya"] },
+        "phoneNumber": { "type": "string", "maxLength": 30 },
+        "whatsappNumber": { "type": "string", "maxLength": 30 },
+        "email": { "type": "string", "maxLength": 255 },
+        "emergencyContactName": { "type": "string", "maxLength": 150 },
+        "emergencyContactPhone": { "type": "string", "maxLength": 30 },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "fullName", "relationship", "phoneNumber", "whatsappNumber", "emergencyContactName", "emergencyContactPhone"]
+    },
+    "Registration": {
+      "title": "Registration",
+      "description": "Main observation admission record",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "registrationNumber": { "type": "string", "maxLength": 50 },
+        "studentId": { "type": "string", "maxLength": 128 },
+        "guardianId": { "type": "string", "maxLength": 128 },
+        "status": { "type": "string", "enum": ["Pendaftaran Baru", "Menunggu Jadwal", "Jadwal Terkonfirmasi", "Dibatalkan"] },
+        "submissionDate": { "type": "string" },
+        "developmentalBackground": { "type": "object" },
+        "adminNotes": { "type": "string", "maxLength": 1000 },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "registrationNumber", "studentId", "guardianId", "status", "submissionDate"]
+    },
+    "ObservationAppointment": {
+      "title": "ObservationAppointment",
+      "description": "Scheduled developmental play observation session",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "registrationId": { "type": "string", "maxLength": 128 },
+        "appointmentDate": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$" },
+        "timeSlot": { "type": "string", "maxLength": 50 },
+        "locationRoom": { "type": "string", "maxLength": 100 },
+        "observerId": { "type": "string", "maxLength": 128 },
+        "observerName": { "type": "string", "maxLength": 150 },
+        "status": { "type": "string", "enum": ["Menunggu Konfirmasi", "Dikonfirmasi", "Selesai", "Rescheduled", "Dibatalkan"] },
+        "notes": { "type": "string", "maxLength": 1000 },
+        "rescheduleReason": { "type": "string", "maxLength": 500 },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "registrationId", "appointmentDate", "timeSlot", "locationRoom", "status"]
+    },
+    "ConsentRecord": {
+      "title": "ConsentRecord",
+      "description": "Parental consent and privacy acknowledgment record",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "registrationId": { "type": "string", "maxLength": 128 },
+        "guardianName": { "type": "string", "maxLength": 150 },
+        "consentObservation": { "type": "boolean" },
+        "consentPrivacyPolicy": { "type": "boolean" },
+        "dataAccuracyConfirmed": { "type": "boolean" },
+        "consentedAt": { "type": "string" }
+      },
+      "required": ["id", "registrationId", "guardianName", "consentObservation", "consentPrivacyPolicy", "dataAccuracyConfirmed"]
+    },
+    "SchoolSettings": {
+      "title": "SchoolSettings",
+      "description": "Configurable school settings and vision/mission",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "schoolName": { "type": "string", "maxLength": 150 },
+        "tagline": { "type": "string", "maxLength": 255 },
+        "address": { "type": "string", "maxLength": 500 },
+        "phone": { "type": "string", "maxLength": 50 },
+        "whatsappNumber": { "type": "string", "maxLength": 50 },
+        "email": { "type": "string", "maxLength": 100 },
+        "accreditation": { "type": "string", "maxLength": 100 },
+        "vision": { "type": "string", "maxLength": 1000 },
+        "mission": { "type": "array" },
+        "observationGuidelines": { "type": "string", "maxLength": 1000 },
+        "faqList": { "type": "array" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "schoolName", "address", "phone", "whatsappNumber"]
+    },
+    "ObservationSession": {
+      "title": "ObservationSession",
+      "description": "7-domain teacher observation workstation record",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "student_id": { "type": "string", "maxLength": 128 },
+        "registration_id": { "type": "string", "maxLength": 128 },
+        "observer_id": { "type": "string", "maxLength": 128 },
+        "observer_name": { "type": "string", "maxLength": 150 },
+        "session_date": { "type": "string" },
+        "status": { "type": "string" },
+        "responses": { "type": "object" },
+        "synthesis": { "type": "object" },
+        "updated_at": { "type": "string" }
+      },
+      "required": ["id", "student_id", "registration_id", "session_date", "status"]
+    },
+    "ObservationReport": {
+      "title": "ObservationReport",
+      "description": "23-section official Indonesian observation report with approval logs and versioning",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "report_number": { "type": "string", "maxLength": 100 },
+        "session_id": { "type": "string", "maxLength": 128 },
+        "student_id": { "type": "string", "maxLength": 128 },
+        "student_name": { "type": "string", "maxLength": 150 },
+        "status": { "type": "string", "enum": ["Draft", "Diajukan untuk Telaah", "Perlu Revisi", "Disetujui Kepala Sekolah"] },
+        "current_version": { "type": "number" },
+        "versions": { "type": "array" },
+        "created_at": { "type": "string" },
+        "updated_at": { "type": "string" }
+      },
+      "required": ["id", "report_number", "session_id", "student_id", "student_name", "status"]
+    },
+    "LearningRecommendation": {
+      "title": "LearningRecommendation",
+      "description": "Individualized educational recommendation (PPI/IEP) based on documented observations",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "report_id": { "type": "string", "maxLength": 128 },
+        "category": { "type": "string", "maxLength": 100 },
+        "target_skill": { "type": "string", "maxLength": 255 },
+        "baseline_observation": { "type": "string" },
+        "suggested_strategy": { "type": "string" },
+        "required_materials": { "type": "string" },
+        "assistance_level": { "type": "string", "maxLength": 100 },
+        "success_indicator": { "type": "string" },
+        "review_period": { "type": "string", "maxLength": 50 },
+        "is_ai_generated": { "type": "boolean" },
+        "order_index": { "type": "number" }
+      },
+      "required": ["id", "report_id", "category", "target_skill", "suggested_strategy", "assistance_level", "success_indicator"]
+    },
+    "AdmissionDecision": {
+      "title": "AdmissionDecision",
+      "description": "Administrative admission decisions separate from clinical observations",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "registration_id": { "type": "string", "maxLength": 128 },
+        "student_id": { "type": "string", "maxLength": 128 },
+        "student_name": { "type": "string", "maxLength": 150 },
+        "decision_status": { "type": "string", "enum": ["Diterima", "Menunggu Diskusi", "Perlu Observasi Lanjutan", "Daftar Tunggu", "Rujukan Luar", "Ditolak"] },
+        "decision_date": { "type": "string" },
+        "decision_maker": { "type": "string", "maxLength": 150 },
+        "decision_maker_role": { "type": "string", "maxLength": 50 },
+        "decision_notes": { "type": "string" },
+        "recommended_program": { "type": "string", "maxLength": 150 }
+      },
+      "required": ["id", "registration_id", "student_id", "decision_status", "decision_date", "decision_maker"]
+    },
+    "StaffUser": {
+      "title": "StaffUser",
+      "description": "School staff account with role-based access control",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "full_name": { "type": "string", "maxLength": 150 },
+        "email": { "type": "string", "maxLength": 255 },
+        "role": { "type": "string", "enum": ["admin", "principal", "observer", "staff"] },
+        "role_title": { "type": "string", "maxLength": 100 },
+        "is_active": { "type": "boolean" },
+        "phone": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["id", "full_name", "email", "role", "is_active"]
+    },
+    "AuditLogEntry": {
+      "title": "AuditLogEntry",
+      "description": "Immutable security and compliance audit log entry (UU PDP No. 27/2022 compliant)",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "timestamp": { "type": "string" },
+        "actor_name": { "type": "string", "maxLength": 150 },
+        "actor_role": { "type": "string", "maxLength": 50 },
+        "action_type": { "type": "string", "maxLength": 50 },
+        "record_type": { "type": "string", "maxLength": 50 },
+        "record_id": { "type": "string", "maxLength": 128 },
+        "details": { "type": "string" },
+        "security_hash": { "type": "string", "maxLength": 128 }
+      },
+      "required": ["id", "timestamp", "actor_name", "action_type", "record_type", "record_id"]
+    }
+  },
+  "firestore": {
+    "/students/{studentId}": {
+      "schema": { "$ref": "Student" },
+      "description": "Registered students profiles"
+    },
+    "/guardians/{guardianId}": {
+      "schema": { "$ref": "Guardian" },
+      "description": "Guardian contacts"
+    },
+    "/registrations/{registrationId}": {
+      "schema": { "$ref": "Registration" },
+      "description": "Observation registration records"
+    },
+    "/appointments/{appointmentId}": {
+      "schema": { "$ref": "ObservationAppointment" },
+      "description": "Observation appointment slots"
+    },
+    "/consents/{consentId}": {
+      "schema": { "$ref": "ConsentRecord" },
+      "description": "Consent and data verification records"
+    },
+    "/settings/{settingId}": {
+      "schema": { "$ref": "SchoolSettings" },
+      "description": "School settings document"
+    },
+    "/admins/{adminId}": {
+      "schema": { "type": "object" },
+      "description": "Authorized staff and admin identity records"
+    },
+    "/observation_sessions/{sessionId}": {
+      "schema": { "$ref": "ObservationSession" },
+      "description": "7-domain teacher observation workstation records"
+    },
+    "/reports/{reportId}": {
+      "schema": { "$ref": "ObservationReport" },
+      "description": "Formal observation reports with 23 sections"
+    },
+    "/learning_recommendations/{recId}": {
+      "schema": { "$ref": "LearningRecommendation" },
+      "description": "Individualized educational program recommendations"
+    },
+    "/admission_decisions/{decisionId}": {
+      "schema": { "$ref": "AdmissionDecision" },
+      "description": "Separate administrative admission decisions"
+    },
+    "/staff_users/{userId}": {
+      "schema": { "$ref": "StaffUser" },
+      "description": "School staff users with RBAC"
+    },
+    "/audit_logs/{logId}": {
+      "schema": { "$ref": "AuditLogEntry" },
+      "description": "Immutable security and access audit logs"
+    }
+  }
+}

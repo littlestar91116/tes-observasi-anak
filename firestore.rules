@@ -1,0 +1,191 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global Safety Net: Default-deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Helper Functions ---
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // Admin role check: checks exists in /admins/ collection or bootstrapped admin email
+    function isAdmin() {
+      return isSignedIn() && (
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
+        request.auth.token.email == 'littlestar91116@gmail.com'
+      );
+    }
+
+    // Entity Validation Helpers
+    function isValidStudent(data) {
+      return data.keys().hasAll(['id', 'fullName', 'preferredName', 'birthPlace', 'birthDate', 'gender', 'address']) &&
+        data.id is string && data.id.size() <= 128 &&
+        data.fullName is string && data.fullName.size() > 0 && data.fullName.size() <= 150 &&
+        data.preferredName is string && data.preferredName.size() > 0 && data.preferredName.size() <= 50 &&
+        data.birthPlace is string && data.birthPlace.size() > 0 && data.birthPlace.size() <= 100 &&
+        data.birthDate is string && data.birthDate.size() <= 20 &&
+        (data.gender == 'Laki-laki' || data.gender == 'Perempuan') &&
+        data.address is string && data.address.size() > 0 && data.address.size() <= 500;
+    }
+
+    function isValidGuardian(data) {
+      return data.keys().hasAll(['id', 'fullName', 'relationship', 'phoneNumber', 'whatsappNumber', 'emergencyContactName', 'emergencyContactPhone']) &&
+        data.id is string && data.id.size() <= 128 &&
+        data.fullName is string && data.fullName.size() > 0 && data.fullName.size() <= 150 &&
+        data.relationship is string && data.relationship.size() <= 50 &&
+        data.phoneNumber is string && data.phoneNumber.size() <= 30 &&
+        data.whatsappNumber is string && data.whatsappNumber.size() <= 30 &&
+        data.emergencyContactName is string && data.emergencyContactName.size() <= 150 &&
+        data.emergencyContactPhone is string && data.emergencyContactPhone.size() <= 30;
+    }
+
+    function isValidRegistration(data) {
+      return data.keys().hasAll(['id', 'registrationNumber', 'studentId', 'guardianId', 'status', 'submissionDate']) &&
+        data.id is string && data.id.size() <= 128 &&
+        data.registrationNumber is string && data.registrationNumber.size() <= 50 &&
+        data.studentId is string && data.studentId.size() <= 128 &&
+        data.guardianId is string && data.guardianId.size() <= 128 &&
+        data.status is string && data.status.size() <= 50 &&
+        data.submissionDate is string;
+    }
+
+    function isValidAppointment(data) {
+      return data.keys().hasAll(['id', 'registrationId', 'appointmentDate', 'timeSlot', 'locationRoom', 'status']) &&
+        data.id is string && data.id.size() <= 128 &&
+        data.registrationId is string && data.registrationId.size() <= 128 &&
+        data.appointmentDate is string && data.appointmentDate.size() <= 20 &&
+        data.timeSlot is string && data.timeSlot.size() <= 50 &&
+        data.locationRoom is string && data.locationRoom.size() <= 100 &&
+        data.status is string && data.status.size() <= 50;
+    }
+
+    function isValidConsent(data) {
+      return data.keys().hasAll(['id', 'registrationId', 'guardianName', 'consentObservation', 'consentPrivacyPolicy', 'dataAccuracyConfirmed']) &&
+        data.id is string && data.id.size() <= 128 &&
+        data.registrationId is string && data.registrationId.size() <= 128 &&
+        data.guardianName is string && data.guardianName.size() <= 150 &&
+        data.consentObservation is bool &&
+        data.consentPrivacyPolicy is bool &&
+        data.dataAccuracyConfirmed is bool;
+    }
+
+    function isValidSettings(data) {
+      return data.keys().hasAll(['id', 'schoolName', 'address', 'phone', 'whatsappNumber']) &&
+        data.id is string && data.id.size() <= 128 &&
+        data.schoolName is string && data.schoolName.size() <= 150 &&
+        data.address is string && data.address.size() <= 500 &&
+        data.phone is string && data.phone.size() <= 50 &&
+        data.whatsappNumber is string && data.whatsappNumber.size() <= 50;
+    }
+
+    // --- Collections ---
+
+    // 1. Students Collection: Public can register, Admins can read & manage
+    match /students/{studentId} {
+      allow get: if isAdmin();
+      allow list: if isAdmin();
+      allow create: if isValidId(studentId) && isValidStudent(incoming());
+      allow update: if isValidId(studentId) && isAdmin() && isValidStudent(incoming());
+      allow delete: if isValidId(studentId) && isAdmin();
+    }
+
+    // 2. Guardians Collection: Public can submit contact, Admins can read & manage
+    match /guardians/{guardianId} {
+      allow get: if isAdmin();
+      allow list: if isAdmin();
+      allow create: if isValidId(guardianId) && isValidGuardian(incoming());
+      allow update: if isValidId(guardianId) && isAdmin() && isValidGuardian(incoming());
+      allow delete: if isValidId(guardianId) && isAdmin();
+    }
+
+    // 3. Registrations Collection
+    match /registrations/{registrationId} {
+      allow get: if isAdmin() || true; // Public can get their own receipt by registration ID
+      allow list: if isAdmin();
+      allow create: if isValidId(registrationId) && isValidRegistration(incoming());
+      allow update: if isValidId(registrationId) && isAdmin() && isValidRegistration(incoming());
+      allow delete: if isValidId(registrationId) && isAdmin();
+    }
+
+    // 4. Appointments Collection
+    match /appointments/{appointmentId} {
+      allow get: if true;
+      allow list: if true; // Public can see booked slots to avoid conflict
+      allow create, update, delete: if isValidId(appointmentId) && isAdmin() && isValidAppointment(incoming());
+    }
+
+    // 5. Consent Records Collection
+    match /consents/{consentId} {
+      allow get: if isAdmin();
+      allow list: if isAdmin();
+      allow create: if isValidId(consentId) && isValidConsent(incoming());
+      allow update, delete: if isValidId(consentId) && isAdmin();
+    }
+
+    // 6. School Settings (Singleton Configuration)
+    match /settings/{settingId} {
+      allow get: if true;
+      allow list: if true;
+      allow create, update: if isValidId(settingId) && isAdmin() && isValidSettings(incoming());
+      allow delete: if false;
+    }
+
+    // 7. Admin Identification
+    match /admins/{adminId} {
+      allow read: if isAdmin();
+      allow write: if isAdmin();
+    }
+
+    // 8. Observation Sessions Collection (Module 2)
+    match /observation_sessions/{sessionId} {
+      allow read, write: if isAdmin();
+    }
+
+    // 9. Observation Reports Collection (Module 3)
+    match /reports/{reportId} {
+      allow read, write: if isAdmin();
+    }
+
+    // 10. Learning Recommendations Collection (Module 3)
+    match /learning_recommendations/{recId} {
+      allow read, write: if isAdmin();
+    }
+
+    // 11. Admission Decisions Collection (Module 4)
+    match /admission_decisions/{decisionId} {
+      allow read: if isAdmin();
+      allow write: if isAdmin();
+    }
+
+    // 12. Staff Users Collection (Module 4)
+    match /staff_users/{userId} {
+      allow read: if isAdmin();
+      allow write: if isAdmin();
+    }
+
+    // 13. Audit Logs Collection (Module 4: Immutable security requirement)
+    match /audit_logs/{logId} {
+      allow read: if isAdmin();
+      allow create: if isAdmin() || isSignedIn();
+      allow update, delete: if false; // Strict immutability for audit compliance
+    }
+
+  }
+}
+

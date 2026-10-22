@@ -1,0 +1,6 @@
+{
+  "name": "Little Star School Pamekasan",
+  "description": "Sistem Informasi & Pendaftaran Observasi Siswa Baru Little Star School Pamekasan - Layanan Khusus Anak Berkebutuhan Khusus (ABK).",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
